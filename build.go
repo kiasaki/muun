@@ -12,18 +12,6 @@ import (
 	"github.com/russross/blackfriday"
 )
 
-type PageType string
-
-const (
-	PtPage PageType = "page"
-	PtPost          = "post"
-)
-
-type Page struct {
-	Title    string
-	Contents template.HTML
-}
-
 func cmdBuild() {
 	log.Println("Discovering pages")
 	wd := mustString(os.Getwd())
@@ -66,18 +54,29 @@ func processFile(path string, category PageType) {
 
 	// Wrap contents in layout
 	page := Page{
-		"Title", template.HTML(contents),
+		Cfg().SiteTitle,
+		template.HTML(contents),
 	}
-	finalFilePath := mustString(filepath.Abs(strings.Replace(base, ".md", ".html", -1)))
+	buildDir := mustString(filepath.Abs(Cfg().BuildDir))
+	finalFilePath := filepath.Join(buildDir, strings.Replace(base, ".md", ".html", -1))
 	finalContent := wrapContentsInLayout(page)
-	ioutil.WriteFile(finalFilePath, []byte(finalContent), 0644)
+
+	// Ensure build dir exists
+	if err := os.MkdirAll(buildDir, 0755); err != nil {
+		log.Panic(err)
+	}
+
+	// Write file
+	if err := ioutil.WriteFile(finalFilePath, []byte(finalContent), 0755); err != nil {
+		log.Panic(err)
+	}
 }
 
 func wrapContentsInLayout(page Page) string {
 	var doc bytes.Buffer
 
 	t := template.New("layout")
-	t, err := t.ParseFiles(mustString(filepath.Abs("_layout.html")))
+	t, err := t.ParseFiles(mustString(filepath.Abs(Cfg().LayoutFile)))
 	err = t.ExecuteTemplate(&doc, "layout", page)
 	if err != nil {
 		log.Panic(err)
