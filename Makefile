@@ -5,4 +5,4 @@ build:
 	go build -o muun .
 
 example: build
-	(cd example && ../muun -build-dir build)
+	(cd example && ../muun -build-dir build -site-title 'Example Site')

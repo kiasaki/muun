@@ -2,14 +2,21 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>{{.Title}}</title>
+    <title>
+      {{template "title"}}
+    </title>
     <link rel="stylesheet" href="/css/styles.css" />
   </head>
   <body>
-    <h1>Awesome blawg</h1>
+    <h1 class="site-title">Awesome blawg</h1>
+
+    <div class="site-menu">
+      <a href="/">Home</a>
+      <a href="/about.html">About</a>
+    </div>
 
     <section class="page-contents">
-      {{.Contents}}
+      {{template "contents"}}
     </section>
 
   </body>

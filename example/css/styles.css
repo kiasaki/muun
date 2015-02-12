@@ -13,3 +13,26 @@ body {
   background: #fff;
   box-shadow: 0 0 4px rgba(0,0,0,0.3);
 }
+
+.site-title {
+  font-size: 32px;
+  font-weight: 300;
+  margin: 0;
+  padding: 0;
+}
+
+.site-menu {
+  padding: 30px 60px;
+  margin: 60px -60px 30px;
+  background: #444;
+}
+.site-menu a {
+  color: #fff;
+  text-decoration: none;
+  display: inline-block;
+  margin-right: 15px;
+}
+.site-menu a:hover {
+  text-decoration: underline;
+  color: #ccc;
+}

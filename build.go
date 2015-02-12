@@ -1,86 +1,27 @@
 package main
 
 import (
-	"bytes"
-	"html/template"
-	"io/ioutil"
 	"log"
-	"os"
-	"path/filepath"
-	"strings"
-
-	"github.com/russross/blackfriday"
 )
 
+type BuildInfo struct {
+	Pages []Page
+}
+
 func cmdBuild() {
-	log.Println("Discovering pages")
-	wd := mustString(os.Getwd())
+	pages := []Page{}
 
-	pages := []string{}
-	pagesMdPath := filepath.Join(wd, "pages", "*.md")
-	pagesHtmlPath := filepath.Join(wd, "pages", "*.html")
-	pages = append(pages, mustStringArray(filepath.Glob(pagesMdPath))...)
-	pages = append(pages, mustStringArray(filepath.Glob(pagesHtmlPath))...)
+	for _, pType := range []PageType{PtPost, PtPage} {
+		pageFiles := globFilenamesForDir(Cfg().DirForPageType(pType))
+		log.Printf("Building %d %ss\n", len(pages), pType)
 
-	log.Println("-----")
+		for _, page := range pageFiles {
+			pages = append(pages, NewPage(page, pType))
+		}
+	}
+
+	buildInfo := BuildInfo{pages}
 	for _, page := range pages {
-		processFile(page, "page")
+		page.WriteToBuildDir(buildInfo)
 	}
-	log.Println("-----")
-}
-
-func processFile(path string, category PageType) {
-	var contents string
-
-	base := filepath.Base(path)
-	ext := filepath.Ext(path)
-
-	log.Println(base)
-
-	var rawFileContents []byte
-	if bytesRead, err := ioutil.ReadFile(path); err != nil {
-		log.Panic(err)
-	} else {
-		rawFileContents = bytesRead
-	}
-
-	if ext == ".md" {
-		// parse with blackfriday
-		contents = string(blackfriday.MarkdownCommon(rawFileContents))
-	} else if ext == ".html" {
-		// parse with html/template
-		contents = string(rawFileContents)
-	}
-
-	// Wrap contents in layout
-	page := Page{
-		Cfg().SiteTitle,
-		template.HTML(contents),
-	}
-	buildDir := mustString(filepath.Abs(Cfg().BuildDir))
-	finalFilePath := filepath.Join(buildDir, strings.Replace(base, ".md", ".html", -1))
-	finalContent := wrapContentsInLayout(page)
-
-	// Ensure build dir exists
-	if err := os.MkdirAll(buildDir, 0755); err != nil {
-		log.Panic(err)
-	}
-
-	// Write file
-	if err := ioutil.WriteFile(finalFilePath, []byte(finalContent), 0755); err != nil {
-		log.Panic(err)
-	}
-}
-
-func wrapContentsInLayout(page Page) string {
-	var doc bytes.Buffer
-
-	t := template.New("layout")
-	t, err := t.ParseFiles(mustString(filepath.Abs(Cfg().LayoutFile)))
-	err = t.ExecuteTemplate(&doc, "layout", page)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	return doc.String()
 }

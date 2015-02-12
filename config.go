@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"path/filepath"
 )
 
 type Config struct {
@@ -45,4 +46,16 @@ func ParseFlag() Config {
 		*fSiteTitle,
 	}
 	return c
+}
+
+func (c Config) LayoutFullpath() string {
+	return mustString(filepath.Abs(Cfg().LayoutFile))
+}
+
+func (c Config) DirForPageType(pt PageType) string {
+	if pt == PtPage {
+		return c.PagesDir
+	} else {
+		return c.PostsDir
+	}
 }
