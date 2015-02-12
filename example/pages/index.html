@@ -1,9 +1,17 @@
-{{define "title"}}Frederic's Blog - Home{{end}}
+{{define "title"}}Example's Blog - Home{{end}}
 
 {{define "contents"}}
 <h1>Home</h1>
 
 <ul>
-  <li>List of posts go here</li>
+  {{range .Posts}}
+    <li>
+      <a href="{{.OutFilename}}">{{.Title}}</a>
+      &nbsp;
+      <small>[{{.DateFormatted}}]</small>
+    </li>
+  {{else}}
+    <li>No posts</li>
+  {{end}}
 </ul>
 {{end}}

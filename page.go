@@ -7,7 +7,9 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/russross/blackfriday"
 )
@@ -20,12 +22,14 @@ const (
 )
 
 type Page struct {
+	Title    string
 	Filename string
 	Type     PageType
 	Contents string
 }
 
 func NewPage(filename string, pt PageType) Page {
+	var title string
 	ext := filepath.Ext(filename)
 
 	contents := string(mustReadFile(filename))
@@ -33,21 +37,41 @@ func NewPage(filename string, pt PageType) Page {
 	if ext == ".md" {
 		// Use markdown h1 tag as page title
 		contentLines := strings.Split(string(contents), "\n")
-		title := Cfg().SiteTitle + strings.Replace(contentLines[0], "# ", " ", -1)
+		title = strings.Replace(contentLines[0], "# ", "", -1)
 		contents = string(blackfriday.MarkdownCommon([]byte(contents)))
 
 		// parse with blackfriday
 		contents = fmt.Sprintf(`
 			{{define "title"}}%s{{end}}
 			{{define "contents"}}%s{{end}}
-		`, title, contents)
+		`, Cfg().SiteTitle+" "+title, contents)
 	}
 
 	return Page{
+		Title:    title,
 		Filename: filename,
 		Type:     pt,
 		Contents: contents,
 	}
+}
+
+func (p Page) OutFilename() string {
+	return strings.Replace(filepath.Base(p.Filename), ".md", ".html", -1)
+}
+
+func (p Page) DateFromFilename() time.Time {
+	fn := p.OutFilename()
+	y := mustInt(strconv.Atoi(fn[:4]))
+	m := time.Month(mustInt(strconv.Atoi(fn[5:7])))
+	d := mustInt(strconv.Atoi(fn[8:10]))
+	loc, err := time.LoadLocation("UTC")
+	assertNotErr(err)
+	return time.Date(y, m, d, 0, 0, 0, 0, loc)
+}
+
+func (p Page) DateFormatted() string {
+	d := p.DateFromFilename()
+	return fmt.Sprintf("%d %s %d", d.Day(), d.Month().String()[:3], d.Year())
 }
 
 func (p Page) WriteToBuildDir(bi BuildInfo) {
@@ -61,13 +85,11 @@ func (p Page) WriteToBuildDir(bi BuildInfo) {
 	err = t.ExecuteTemplate(&doc, "layout", bi)
 	assertNotErr(err)
 
-	base := filepath.Base(p.Filename)
-	writeToDisk(base, doc.Bytes())
+	writeToDisk(p.OutFilename(), doc.Bytes())
 }
 
-func writeToDisk(originalFilename string, contents []byte) {
+func writeToDisk(destinationFilename string, contents []byte) {
 	buildDir := mustString(filepath.Abs(Cfg().BuildDir))
-	destinationFilename := strings.Replace(originalFilename, ".md", ".html", -1)
 	finalFilePath := filepath.Join(buildDir, destinationFilename)
 
 	// Ensure build dir exists

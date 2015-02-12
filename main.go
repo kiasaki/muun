@@ -22,6 +22,13 @@ func assertNotErr(err error) {
 	}
 }
 
+func mustInt(i int, err error) int {
+	if err != nil {
+		log.Panic(err)
+	}
+	return i
+}
+
 func mustString(s string, err error) string {
 	if err != nil {
 		log.Panic(err)

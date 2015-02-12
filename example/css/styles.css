@@ -9,9 +9,17 @@ html, body {
 body {
   padding: 60px;
   margin: 60px auto;
-  width: 650px;
+  width: 860px;
   background: #fff;
   box-shadow: 0 0 4px rgba(0,0,0,0.3);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+img {
+  max-width: 100%;
 }
 
 .site-title {
