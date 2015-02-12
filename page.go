@@ -59,6 +59,10 @@ func (p Page) OutFilename() string {
 	return strings.Replace(filepath.Base(p.Filename), ".md", ".html", -1)
 }
 
+func (p Page) Link() string {
+	return "/" + strings.Replace(p.OutFilename(), "-", "/", 3)
+}
+
 func (p Page) DateFromFilename() time.Time {
 	fn := p.OutFilename()
 	y := mustInt(strconv.Atoi(fn[:4]))
@@ -85,7 +89,7 @@ func (p Page) WriteToBuildDir(bi BuildInfo) {
 	err = t.ExecuteTemplate(&doc, "layout", bi)
 	assertNotErr(err)
 
-	writeToDisk(p.OutFilename(), doc.Bytes())
+	writeToDisk(p.Link(), doc.Bytes())
 }
 
 func writeToDisk(destinationFilename string, contents []byte) {
@@ -93,7 +97,7 @@ func writeToDisk(destinationFilename string, contents []byte) {
 	finalFilePath := filepath.Join(buildDir, destinationFilename)
 
 	// Ensure build dir exists
-	err := os.MkdirAll(buildDir, 0755)
+	err := os.MkdirAll(filepath.Dir(finalFilePath), 0755)
 	assertNotErr(err)
 
 	// Write file
