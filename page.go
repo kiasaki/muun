@@ -38,6 +38,7 @@ func NewPage(filename string, pt PageType) Page {
 		// Use markdown h1 tag as page title
 		contentLines := strings.Split(string(contents), "\n")
 		title = strings.Replace(contentLines[0], "# ", "", -1)
+		contents = strings.Join(contentLines[1:], "\n")
 		contents = string(blackfriday.MarkdownCommon([]byte(contents)))
 
 		// parse with blackfriday
@@ -61,6 +62,14 @@ func (p Page) OutFilename() string {
 
 func (p Page) Link() string {
 	return "/" + strings.Replace(p.OutFilename(), "-", "/", 3)
+}
+
+func (p Page) IsPost() bool {
+	return p.Type == PtPost
+}
+
+func (p Page) IsMarkdown() bool {
+	return filepath.Ext(p.Filename) == ".md"
 }
 
 func (p Page) DateFromFilename() time.Time {
