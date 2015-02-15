@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/kiasaki/batbelt/mst"
 	"github.com/russross/blackfriday"
 )
 
@@ -74,11 +75,11 @@ func (p Page) IsMarkdown() bool {
 
 func (p Page) DateFromFilename() time.Time {
 	fn := p.OutFilename()
-	y := mustInt(strconv.Atoi(fn[:4]))
-	m := time.Month(mustInt(strconv.Atoi(fn[5:7])))
-	d := mustInt(strconv.Atoi(fn[8:10]))
+	y := mst.MustInt(strconv.Atoi(fn[:4]))
+	m := time.Month(mst.MustInt(strconv.Atoi(fn[5:7])))
+	d := mst.MustInt(strconv.Atoi(fn[8:10]))
 	loc, err := time.LoadLocation("UTC")
-	assertNotErr(err)
+	mst.MustNotErr(err)
 	return time.Date(y, m, d, 0, 0, 0, 0, loc)
 }
 
@@ -89,27 +90,27 @@ func (p Page) DateFormatted() string {
 
 func (p Page) WriteToBuildDir(bi BuildInfo) {
 	t, err := template.New("contents").Parse(p.Contents)
-	assertNotErr(err)
+	mst.MustNotErr(err)
 
 	t, err = t.New("layout").ParseFiles(Cfg().LayoutFullpath())
-	assertNotErr(err)
+	mst.MustNotErr(err)
 
 	var doc bytes.Buffer
 	err = t.ExecuteTemplate(&doc, "layout", bi)
-	assertNotErr(err)
+	mst.MustNotErr(err)
 
 	writeToDisk(p.Link(), doc.Bytes())
 }
 
 func writeToDisk(destinationFilename string, contents []byte) {
-	buildDir := mustString(filepath.Abs(Cfg().BuildDir))
+	buildDir := mst.MustString(filepath.Abs(Cfg().BuildDir))
 	finalFilePath := filepath.Join(buildDir, destinationFilename)
 
 	// Ensure build dir exists
 	err := os.MkdirAll(filepath.Dir(finalFilePath), 0755)
-	assertNotErr(err)
+	mst.MustNotErr(err)
 
 	// Write file
 	err = ioutil.WriteFile(finalFilePath, contents, 0644)
-	assertNotErr(err)
+	mst.MustNotErr(err)
 }

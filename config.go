@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"path/filepath"
+
+	"github.com/kiasaki/batbelt/mst"
 )
 
 type Config struct {
@@ -49,7 +51,7 @@ func ParseFlag() Config {
 }
 
 func (c Config) LayoutFullpath() string {
-	return mustString(filepath.Abs(Cfg().LayoutFile))
+	return mst.MustString(filepath.Abs(Cfg().LayoutFile))
 }
 
 func (c Config) DirForPageType(pt PageType) string {
