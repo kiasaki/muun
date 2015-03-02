@@ -7,11 +7,8 @@ import (
 )
 
 func cmdServe() {
-	http.HandleFunc("/posts", handlePost)
-	http.HandleFunc("/", handlePage)
-
-	log.Printf("Starting web server on port %s\n", Cfg().Port)
-	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(Cfg().Port), nil))
+	log.Printf("Starting web server on port %d\n", Cfg().Port)
+	panic(http.ListenAndServe(":"+strconv.Itoa(Cfg().Port), http.FileServer(http.Dir(Cfg().BuildDir))))
 }
 
 func extractPath(r *http.Request) string {
@@ -24,10 +21,4 @@ func extractPath(r *http.Request) string {
 		path = path + "/index.html"
 	}
 	return path
-}
-
-func handlePage(w http.ResponseWriter, r *http.Request) {
-}
-
-func handlePost(w http.ResponseWriter, r *http.Request) {
 }
